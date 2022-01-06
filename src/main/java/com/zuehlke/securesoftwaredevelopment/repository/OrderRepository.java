@@ -4,10 +4,7 @@ import com.zuehlke.securesoftwaredevelopment.domain.*;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +49,7 @@ public class OrderRepository {
                 "'" + date.getYear() + "-" + date.getMonthValue() + "-" + date.getDayOfMonth() + "', '" + newOrder.getComment() + "')";
         try {
             Connection connection = dataSource.getConnection();
+            PreparedStatement ps = connection.prepareStatement(sqlQuery);
             Statement statement = connection.createStatement();
             statement.executeUpdate(sqlQuery);
 
