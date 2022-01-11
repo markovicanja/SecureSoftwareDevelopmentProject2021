@@ -106,7 +106,8 @@
         <div id="orderForm">
             <div class="form-group">
                 <label for="restaurant">Restaurant</label>
-                <select id="restaurant" name="restaurant" class="form-control" th:onchange="onRestaurantSelect()">
+                <select id="restaurant" name="restaurant" class="form-control" th:onchange="onRestaurantSelect()"
+                    th:disabled="${not #authorization.expression('hasAuthority(''ORDER_FOOD'')')}">
                     <option disabled selected>Choose...</option>
                     <option th:each="restaurant : ${restaurants}" th:value="${restaurant.id}"
                             th:text="${restaurant.name}"></option>
@@ -138,7 +139,8 @@
                     </div>
                 </div>
 
-                <input type="submit" class="btn btn-primary" th:value="Submit" onclick="checkAndSend()"/>
+                <input sec:authorize="hasAuthority('ORDER_FOOD')"
+                       type="submit" class="btn btn-primary"  th:value="Submit" onclick="checkAndSend()"/>
 
 
             </div>

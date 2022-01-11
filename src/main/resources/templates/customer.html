@@ -33,21 +33,25 @@
         <form method="POST" action="/api/customer/update-customer" class="col-5">
             <div class="form-group">
                 <label for="username">Username</label>
-                <input type="text" name="username" class="form-control" id="username" th:value="${customer.username}">
+                <input th:disabled="${not #authorization.expression('hasAuthority(''USERS_EDIT'')')}"
+                       type="text" name="username" class="form-control" id="username" th:value="${customer.username}">
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="text" name="password" class="form-control" id="password" th:value="${customer.password}">
+                <input th:disabled="${not #authorization.expression('hasAuthority(''USERS_EDIT'')')}"
+                        type="text" name="password" class="form-control" id="password" th:value="${customer.password}">
             </div>
             <input type="hidden" name="id" class="form-control" id="id" th:value="${customer.id}">
             <input type="hidden" name="csrfToken" th:value="${CSRF_TOKEN}">
-            <button type="submit" class="btn btn-primary">Save</button>
+            <button sec:authorize="hasAuthority('USERS_EDIT')"
+                    type="submit" class="btn btn-primary">Save</button>
         </form>
     </div>
 
     <div class="row">
         <div class="form-group">
-            <button type="submit" class="btn btn-danger" id="deleteUser"
+            <button sec:authorize="hasAuthority('USERS_DELETE')"
+                    type="submit" class="btn btn-danger" id="deleteUser"
                     th:onclick="'deleteCustomer(\''+ ${customer.id} +'\')'">Delete
             </button>
         </div>

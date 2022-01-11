@@ -11,29 +11,32 @@
 </head>
 <body>
 <div layout:fragment="content">
-    <h1>Restaurants</h1>
-    <table class="table">
+    <h1 sec:authorize="hasAuthority('RESTAURANT_LIST_VIEW')">Restaurants</h1>
+    <table class="table" sec:authorize="hasAuthority('RESTAURANT_LIST_VIEW')">
         <thead>
         <tr>
             <th scope="col">#</th>
             <th scope="col">Name</th>
-            <th scope="col">Address</th>
-            <th scope="col">Type</th>
-            <th scope="col">Change</th>
+            <th sec:authorize="hasAuthority('RESTAURANT_DETAILS_VIEW')" scope="col">Address</th>
+            <th sec:authorize="hasAuthority('RESTAURANT_DETAILS_VIEW')" scope="col">Type</th>
+            <th sec:authorize="hasAuthority('RESTAURANT_DETAILS_VIEW')" scope="col">Change</th>
         </tr>
         </thead>
         <tbody id="restaurantTableContent">
         <tr th:each="restaurant: ${restaurants}">
             <td th:text="${restaurant.id}"></td>
-            <td th:text="${restaurant.name}? 'Delivered' : 'Not delivered'"></td>
-            <td th:text="${restaurant.address}"></td>
-            <td th:text="${restaurant.restaurantType}"></td>
-            <td><a th:href="@{/restaurant(id=${restaurant.id})}">Details</a></td>
+            <td th:text="${restaurant.name}"></td>
+            <td sec:authorize="hasAuthority('RESTAURANT_DETAILS_VIEW')"
+                th:text="${restaurant.address}"></td>
+            <td sec:authorize="hasAuthority('RESTAURANT_DETAILS_VIEW')"
+                th:text="${restaurant.restaurantType}"></td>
+            <td><a sec:authorize="hasAuthority('RESTAURANT_DETAILS_VIEW')"
+                    th:href="@{/restaurant(id=${restaurant.id})}">Details</a></td>
         </tr>
         </tbody>
     </table>
-    <h1>Customers</h1>
-    <table class="table">
+    <h1 sec:authorize="hasAuthority('USERS_LIST_VIEW')">Customers</h1>
+    <table class="table" sec:authorize="hasAuthority('USERS_LIST_VIEW')">
         <thead>
         <tr>
             <th scope="col">#</th>
@@ -45,7 +48,8 @@
         <tr th:each="customer: ${customers}">
             <td th:text="${customer.id}"></td>
             <td th:text="${customer.username}"></td>
-            <td><a th:href="@{/customer(id=${customer.id})}">Details</a></td>
+            <td><a sec:authorize="hasAuthority('USERS_DETAILS_VIEW')"
+                    th:href="@{/customer(id=${customer.id})}">Details</a></td>
         </tr>
         </tbody>
     </table>

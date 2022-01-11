@@ -5,6 +5,7 @@ import com.zuehlke.securesoftwaredevelopment.domain.NewOrder;
 import com.zuehlke.securesoftwaredevelopment.domain.User;
 import com.zuehlke.securesoftwaredevelopment.repository.CustomerRepository;
 import com.zuehlke.securesoftwaredevelopment.repository.OrderRepository;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -43,6 +44,7 @@ public class OrderController {
 
     @PostMapping(value = "/api/new-order", consumes = "application/json")
     @ResponseBody
+    @PreAuthorize("hasAuthority('ORDER_FOOD')")
     public String newOrder(@RequestBody NewOrder newOrder){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
