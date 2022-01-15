@@ -1,5 +1,6 @@
 package com.zuehlke.securesoftwaredevelopment.repository;
 
+import com.zuehlke.securesoftwaredevelopment.config.AuditLogger;
 import com.zuehlke.securesoftwaredevelopment.domain.Permission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ import java.util.List;
 public class PermissionRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(PermissionRepository.class);
+    private static final AuditLogger auditLogger = AuditLogger.getAuditLogger(PermissionRepository.class);
 
     private final DataSource dataSource;
 
@@ -35,8 +37,9 @@ public class PermissionRepository {
                 String name = rs.getString(2);
                 permissions.add(new Permission(id, name));
             }
+            LOG.info("Get permission successful for roleId = " + roleId);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Get permission failed for roleId = " + roleId, e);
         }
         return permissions;
     }

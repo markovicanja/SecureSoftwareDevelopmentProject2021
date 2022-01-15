@@ -1,5 +1,6 @@
 package com.zuehlke.securesoftwaredevelopment.repository;
 
+import com.zuehlke.securesoftwaredevelopment.config.AuditLogger;
 import com.zuehlke.securesoftwaredevelopment.domain.HashedUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +13,7 @@ import java.sql.*;
 public class HashedUserRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(HashedUserRepository.class);
-
+    private static final AuditLogger auditLogger = AuditLogger.getAuditLogger(HashedUserRepository.class);
 
     private final DataSource dataSource;
 
@@ -31,8 +32,9 @@ public class HashedUserRepository {
                 String totpKey = rs.getString(3);
                 return new HashedUser(username, passwordHash, salt, totpKey);
             }
+            LOG.info("Find user successful for username = " + username);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Find user failed for username = " + username, e);
         }
         return null;
     }
@@ -45,8 +47,9 @@ public class HashedUserRepository {
             statement.setString(2, username);
 
             statement.executeUpdate();
+            auditLogger.audit("Save totp key successful for username = " + username);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Save totp key failed for username = " + username, e);
         }
     }
 }

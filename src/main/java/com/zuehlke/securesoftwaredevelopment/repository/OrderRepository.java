@@ -1,6 +1,9 @@
 package com.zuehlke.securesoftwaredevelopment.repository;
 
+import com.zuehlke.securesoftwaredevelopment.config.AuditLogger;
 import com.zuehlke.securesoftwaredevelopment.domain.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
@@ -12,12 +15,14 @@ import java.util.List;
 @Repository
 public class OrderRepository {
 
+    private static final Logger LOG = LoggerFactory.getLogger(OrderRepository.class);
+    private static final AuditLogger auditLogger = AuditLogger.getAuditLogger(OrderRepository.class);
+
     private DataSource dataSource;
 
     public OrderRepository(DataSource dataSource) {
         this.dataSource = dataSource;
     }
-
 
     public List<Food> getMenu(int id) {
         List<Food> menu = new ArrayList<>();
@@ -28,9 +33,10 @@ public class OrderRepository {
             while (rs.next()) {
                 menu.add(createFood(rs));
             }
+            LOG.info("Get menu successful for restaurantId = " + id);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Get menu failed for restaurantId = " + id, e);
         }
 
         return menu;
@@ -57,6 +63,7 @@ public class OrderRepository {
             preparedStatement.setString(5, newOrder.getComment());
 
             preparedStatement.executeUpdate();
+            auditLogger.audit("Insert new delivery successful");
 
             Statement statement = connection.createStatement();
             sqlQuery = "SELECT MAX(id) FROM delivery";
@@ -76,15 +83,13 @@ public class OrderRepository {
                     deliveryItem += "(" + item.getAmount() + ", " + item.getFoodId() + ", " + deliveryId + ")";
                     sqlQuery += deliveryItem;
                 }
-                System.out.println(sqlQuery);
                 statement.executeUpdate(sqlQuery);
             }
+            LOG.info("Food ordered");
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Insert new order failed", e);
         }
-
-
     }
 
     public Object getAddresses(int userId) {
@@ -96,9 +101,10 @@ public class OrderRepository {
             while (rs.next()) {
                 addresses.add(createAddress(rs));
             }
+            LOG.info("Get addresses successful for userId = " + userId);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Get addresses failed for userId = " + userId, e);
         }
         return addresses;
     }

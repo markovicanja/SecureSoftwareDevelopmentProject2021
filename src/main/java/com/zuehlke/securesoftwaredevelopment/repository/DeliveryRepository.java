@@ -1,7 +1,10 @@
 package com.zuehlke.securesoftwaredevelopment.repository;
 
+import com.zuehlke.securesoftwaredevelopment.config.AuditLogger;
 import com.zuehlke.securesoftwaredevelopment.domain.DeliveryDetail;
 import com.zuehlke.securesoftwaredevelopment.domain.ViewableDelivery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
@@ -11,6 +14,10 @@ import java.util.List;
 
 @Repository
 public class DeliveryRepository {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CustomerRepository.class);
+    private static final AuditLogger auditLogger = AuditLogger.getAuditLogger(DeliveryRepository.class);
+
     private DataSource dataSource;
 
     public DeliveryRepository(DataSource dataSource) {
@@ -28,9 +35,10 @@ public class DeliveryRepository {
             while (rs.next()) {
                 deliveries.add(createDelivery(rs));
             }
+            LOG.info("Get all deliveries successful");
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Get customers failed", e);
         }
         return deliveries;
     }
@@ -58,9 +66,10 @@ public class DeliveryRepository {
             if (rs.next()) {
                 return createDelivery(rs);
             }
+            LOG.info("Get delivery id = " + id);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Get delivery failed for id = " + id, e);
         }
         return null;
     }
@@ -76,9 +85,10 @@ public class DeliveryRepository {
             while (rs.next()) {
                 details.add(createDetail(rs));
             }
+            LOG.info("Get delivery details for id = " + id);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Get delivery details failed for id = " + id, e);
         }
         return details;
     }
@@ -103,7 +113,7 @@ public class DeliveryRepository {
     }
 
 
-    public List<ViewableDelivery> search(String searchQuery) throws SQLException {
+    public List<ViewableDelivery> search(String searchQuery) {
         List<ViewableDelivery> cars = new ArrayList<>();
         String sqlQuery =
                 "SELECT d.id, d.isDone, d.date, d.comment, u.username, r.name, rt.name, a.name FROM delivery AS d JOIN users AS u ON d.userId = u.id JOIN restaurant as r ON d.restaurantId = r.id JOIN address AS a ON d.addressId = a.id JOIN restaurant_type AS rt ON r.typeId= rt.id" +
@@ -118,6 +128,10 @@ public class DeliveryRepository {
             while (rs.next()) {
                 cars.add(createDelivery(rs));
             }
+            LOG.info("Delivery search successful for searchQuery = " + searchQuery);
+        }
+        catch (SQLException e) {
+            LOG.warn("Delivery search failed for searchQuery = " + searchQuery, e);
         }
         return cars;
     }

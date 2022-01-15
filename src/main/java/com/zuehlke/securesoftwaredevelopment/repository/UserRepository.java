@@ -1,5 +1,6 @@
 package com.zuehlke.securesoftwaredevelopment.repository;
 
+import com.zuehlke.securesoftwaredevelopment.config.AuditLogger;
 import com.zuehlke.securesoftwaredevelopment.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import java.sql.Statement;
 public class UserRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(UserRepository.class);
+    private static final AuditLogger auditLogger = AuditLogger.getAuditLogger(UserRepository.class);
 
     private DataSource dataSource;
 
@@ -33,8 +35,9 @@ public class UserRepository {
                 String password = rs.getString(3);
                 return new User(id, username1, password);
             }
+            LOG.info("Find user successful for username = " + username);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Find user failed for username = " + username, e);
         }
         return null;
     }
@@ -44,9 +47,9 @@ public class UserRepository {
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement();
              ResultSet rs = statement.executeQuery(query)) {
-            return rs.next();
+             return rs.next();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Credentials check failed", e);
         }
         return false;
     }
@@ -57,8 +60,9 @@ public class UserRepository {
              Statement statement = connection.createStatement();
         ) {
             statement.executeUpdate(query);
+            auditLogger.audit("Delete user successful for userId = " + userId);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Delete user failed for userId = " + userId, e);
         }
     }
 }

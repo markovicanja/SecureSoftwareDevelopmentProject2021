@@ -1,6 +1,8 @@
 package com.zuehlke.securesoftwaredevelopment.repository;
 
 import com.zuehlke.securesoftwaredevelopment.config.AuditLogger;
+import com.zuehlke.securesoftwaredevelopment.config.Entity;
+import com.zuehlke.securesoftwaredevelopment.config.SecurityUtil;
 import com.zuehlke.securesoftwaredevelopment.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +44,9 @@ public class CustomerRepository {
             while (rs.next()) {
                 customers.add(createCustomer(rs));
             }
-
+            LOG.info("Get customers successful");
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Get customers failed", e);
         }
         return customers;
     }
@@ -63,9 +65,9 @@ public class CustomerRepository {
             while (rs.next()) {
                 restaurants.add(createRestaurant(rs));
             }
-
+            LOG.info("Get restaurants successful");
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Get restaurants failed", e);
         }
         return restaurants;
     }
@@ -89,9 +91,9 @@ public class CustomerRepository {
             if (rs.next()) {
                 return createRestaurant(rs);
             }
-
+            LOG.info("Get restaurant details for id = " + id);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Restaurant search failed for id = " + id, e);
         }
         return null;
     }
@@ -102,21 +104,45 @@ public class CustomerRepository {
              Statement statement = connection.createStatement()
         ) {
             statement.executeUpdate(query);
+            auditLogger.audit("Deleted restaurant id = " + id);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Restaurant delete failed for id = " + id, e);
         }
     }
 
     public void updateRestaurant(RestaurantUpdate restaurantUpdate) {
+        Restaurant restaurantFromDb = (Restaurant) getRestaurant(String.valueOf(restaurantUpdate.getId()));
         String query = "UPDATE restaurant SET name = '" + restaurantUpdate.getName() + "', address='" + restaurantUpdate.getAddress() + "', typeId =" + restaurantUpdate.getRestaurantType() + " WHERE id =" + restaurantUpdate.getId();
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()
         ) {
             statement.executeUpdate(query);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
 
+            boolean nameChanged = false, addressChanged = false;
+            if (!restaurantFromDb.getName().equals(restaurantUpdate.getName())) {
+                auditLogger.auditChange(new Entity(
+                        "Restaurant name change",
+                        String.valueOf(restaurantFromDb.getId()),
+                        String.valueOf(restaurantFromDb.getName()),
+                        String.valueOf(restaurantUpdate.getName())
+                ));
+                nameChanged = true;
+            }
+            if (!restaurantFromDb.getAddress().equals(restaurantUpdate.getAddress())) {
+                auditLogger.auditChange(new Entity(
+                        "Restaurant address change",
+                        String.valueOf(restaurantFromDb.getId()),
+                        String.valueOf(restaurantFromDb.getAddress()),
+                        String.valueOf(restaurantUpdate.getAddress())
+                ));
+                addressChanged = true;
+            }
+            if (!nameChanged && !addressChanged) {
+                auditLogger.audit("Restaurant type change");
+            }
+        } catch (SQLException e) {
+            LOG.warn("Restaurant update failed for name = " + restaurantUpdate.getName(), e);
+        }
     }
 
     public Customer getCustomer(String id) {
@@ -128,9 +154,10 @@ public class CustomerRepository {
             if (rs.next()) {
                 return createCustomerWithPassword(rs);
             }
+            LOG.info("Get customer details for id = " + id);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Customer search failed for id = " + id, e);
         }
         return null;
     }
@@ -149,8 +176,9 @@ public class CustomerRepository {
              Statement statement = connection.createStatement()
         ) {
             statement.executeUpdate(query);
+            auditLogger.audit("Deleted customer id = " + id);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Customer delete failed for id = " + id, e);
         }
     }
 
@@ -160,8 +188,9 @@ public class CustomerRepository {
              Statement statement = connection.createStatement()
         ) {
             statement.executeUpdate(query);
+            auditLogger.audit("Updated customer username = " + customerUpdate.getUsername());
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Customer update failed for username = " + customerUpdate.getUsername(), e);
         }
     }
 
@@ -175,9 +204,10 @@ public class CustomerRepository {
             while (rs.next()) {
                 addresses.add(createAddress(rs));
             }
+            LOG.info("Get user addresses for userId = " + id);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Address search failed for id = " + id, e);
         }
         return addresses;
     }
@@ -194,8 +224,9 @@ public class CustomerRepository {
              Statement statement = connection.createStatement()
         ) {
             statement.executeUpdate(query);
+            auditLogger.audit("Deleted address id = " + id);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Address delete failed for id = " + id, e);
         }
     }
 
@@ -205,8 +236,9 @@ public class CustomerRepository {
              Statement statement = connection.createStatement()
         ) {
             statement.executeUpdate(query);
+            auditLogger.audit("Address name change for id = " + address.getId());
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Address update failed for name = " + address.getName(), e);
         }
     }
 
@@ -216,8 +248,9 @@ public class CustomerRepository {
              Statement statement = connection.createStatement()
         ) {
             statement.executeUpdate(query);
+            auditLogger.audit("Inserted address name = " + newAddress.getName());
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Address insert failed for name = " + newAddress.getName(), e);
         }
     }
 }
